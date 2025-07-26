@@ -11,9 +11,10 @@ import base64
 from PIL import Image, ImageDraw, ImageFont
 
 # Constants
-IMAGE_FULL_SIZE = (1000, 1000)
+IMAGE_FULL_SIZE = (1280, 1280)
 IMAGE_FINAL_SIZE = (128, 96)
 IMAGE_BACKGROUND = (0,0,0,0)
+IMAGE_PIXELSIZE = 10
 
 COLOR_LOOKUP = {
     "AirlockCargoGlass": (140,140,0,255),
@@ -30,6 +31,7 @@ COLOR_LOOKUP = {
 
 parser = argparse.ArgumentParser("map-yaml-to-image")
 parser.add_argument('-i', '--input', help="Input file to parse", required=True)
+parser.add_argument('-o', '--output', help="Output file destination", required=True)
 args = parser.parse_args()
 
 def unknown(loader, suffix, node):
@@ -53,16 +55,17 @@ with open(args.input, 'r') as mapfile:
     tile_map = readin['tilemap']
     chunk_info = readin['entities'][0]['entities'][0]['components']
     # Get the tranform of the grid itself
-    grid_transform= chunk_info[1]['pos']
+    #grid_transform= chunk_info[1]['pos']
     # Get the BASE64 encoded tile layout
-    grid_layout_enc = chunk_info[2]['chunks']['0,0']['tiles']
-    grid_layout_dec = base64.b64decode(grid_layout_enc)
+    #grid_layout_enc = chunk_info[2]['chunks']['0,0']['tiles']
+    #grid_layout_dec = base64.b64decode(grid_layout_enc)
 
 
 
     print('Starting Image Generator')
     new_image = Image.new('RGBA', IMAGE_FULL_SIZE, color=IMAGE_BACKGROUND)
     new_image_data = new_image.load()
+    new_image_draw = ImageDraw.Draw(new_image)
 
 
     for entity in readin['entities'][1:]:
@@ -75,9 +78,11 @@ with open(args.input, 'r') as mapfile:
                 pos_tup = tuple(map(float, pos.split(',')))
                 if (item_name in COLOR_LOOKUP):
                     print("Drawing " + item_name + " at " + str(pos_tup))
-                    new_image_data[int(pos_tup[0]*2)+500, int(pos_tup[1]*2)+500] = COLOR_LOOKUP[item_name]
+                    draw_pos_tup = ((int(pos_tup[0]*IMAGE_PIXELSIZE)+IMAGE_FULL_SIZE[0]/2), (int(pos_tup[1]*IMAGE_PIXELSIZE+IMAGE_FULL_SIZE[1]/2)))
+                    new_image_draw.rectangle((draw_pos_tup[0]-IMAGE_PIXELSIZE / 2, draw_pos_tup[1]-IMAGE_PIXELSIZE / 2,draw_pos_tup[0]+IMAGE_PIXELSIZE/2,draw_pos_tup[1]+IMAGE_PIXELSIZE/2), fill=COLOR_LOOKUP[item_name])
+                    #new_image_data[int(pos_tup[0]*2)+500, int(pos_tup[1]*2)+500] = COLOR_LOOKUP[item_name]
 
 
-    new_image.save("output.png", format="png")
+    new_image.save(args.output, format="png")
 
 
