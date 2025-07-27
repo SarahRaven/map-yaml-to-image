@@ -5,6 +5,6 @@ FILE_INPUT=`find ~/Documents/Coding/Monolith.SarahRaven/Resources/Maps/_Mono/Shu
 
 for i in $FILE_INPUT
 do
-    ./main.py -i "$i" -o output/$(basename $i).png
+    ~/Documents/Coding/map-yaml-to-image/main.py -i "$i" -o output/$(basename $i .yml).png
 done
 
